@@ -46,6 +46,7 @@ jobs:
     steps:
     - name: Chown user
       run: |
+        # REVIEW: is this absolutely necessary? if so, we could document here why with a short comment
         sudo chown -R $USER:$USER $GITHUB_WORKSPACE
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
@@ -111,7 +112,7 @@ jobs:
         python3 tests/load_mongo_data.py tests/data/ne_110m_populated_places_simple.geojson
         gunzip < tests/data/hotosm_bdi_waterways.sql.gz | psql postgresql://postgres:${{ secrets.DatabasePassword || 'postgres' }}@localhost:5432/test
         psql postgresql://postgres:${{ secrets.DatabasePassword || 'postgres' }}@localhost:5432/test -f tests/data/dummy_data.sql
-        docker ps
+        docker ps  # REVIEW: is this still needed?
         python3 tests/load_oracle_data.py
     - name: run unit tests ⚙️
       env:

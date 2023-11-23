@@ -235,6 +235,12 @@ class DatabaseConnection:
         Lookup for public and private synonyms.
         Throws ProviderGenericError when table not exist or accesable.
         """
+
+        # REVIEW: in python, you can use the `with` statement to handle cursor cleanup, more or less like this:
+        # with self.conn.cursor() as cur:
+        #     cur.execute(query1)
+        #     cur.execute(query2)
+        # (after the with statement, the cursor is going to be closed in the db)
         cur = self.conn.cursor()
 
         sql = """
@@ -610,6 +616,7 @@ class OracleProvider(BaseProvider):
                 geom = ""
 
             elif not skip_geometry and source_srid != target_srid:
+                # REVIEW: checking for "not skip_geometry" is not necessary here, otherwise the if above would have been chosen
                 geom = f""", sdo_cs.transform(t1.{self.geom},
                                              :target_srid).get_geojson()
                              AS geometry """
@@ -794,6 +801,7 @@ class OracleProvider(BaseProvider):
             #   When a different output CRS is definded, the geometry
             #   geometry column would be transformed.
             if source_srid != target_srid:
+                # REVIEW: just an observation: this if condition is true exactly when the if above it is true, so those two could be merged
                 crs_dict = {"target_srid": target_srid}
 
                 geom_sql = f""", sdo_cs.transform(t1.{self.geom},
