@@ -802,6 +802,8 @@ class OracleProvider(BaseProvider):
             #   geometry column would be transformed.
             if source_srid != target_srid:
                 # REVIEW: just an observation: this if condition is true exactly when the if above it is true, so those two could be merged
+                # COMMENT: only now. When Issue 1393 is maybe accepted, hope last dies :-D, then it is not the same ...
+                #          But added it as comment in the todo block.
                 crs_dict = {"target_srid": target_srid}
 
                 geom_sql = f""", sdo_cs.transform(t1.{self.geom},
