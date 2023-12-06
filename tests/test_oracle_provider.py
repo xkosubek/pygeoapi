@@ -33,6 +33,7 @@
 import os
 import pytest
 from pygeoapi.provider.oracle import OracleProvider
+from pygeofilter.parsers.ecql import parse
 
 USERNAME = os.environ.get("PYGEOAPI_ORACLE_USER", "geo_test")
 PASSWORD = os.environ.get("PYGEOAPI_ORACLE_PASSWD", "geo_test")
@@ -557,3 +558,14 @@ def test_create_point(config, create_point_geojson):
     data = p.get(28)
 
     assert data.get("geometry").get("type") == "Point"
+
+
+def test_cql(config):
+    """Test query for a valid JSON object with geometry"""
+    p = OracleProvider(config)
+    cql_text = "name LIKE '%Great%'"
+    ast = parse(cql_text)
+    feature_collection = p.query(filterq=ast)
+    features = feature_collection.get("features")
+
+    assert len(features) == 3

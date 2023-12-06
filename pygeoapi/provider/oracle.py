@@ -31,6 +31,7 @@ import importlib
 import json
 import logging
 import oracledb
+from pygeofilter.backends.oraclesql import to_sql_where_with_binds
 import pyproj
 from typing import Optional
 
@@ -381,6 +382,7 @@ class OracleProvider(BaseProvider):
         bbox_crs,
         sdo_param=None,
         sdo_operator="sdo_filter",
+        filterq=None,
     ):
         """
         Generarates WHERE conditions to be implemented in query.
@@ -400,6 +402,19 @@ class OracleProvider(BaseProvider):
             prop_clauses = [f"{key} = :{key}" for key, value in properties]
             where_conditions += prop_clauses
             where_dict["properties"] = dict(properties)
+
+        if filterq:
+            fields = self.get_fields()
+            field_mapping = {key: key for key in fields}
+            field_mapping.update({self.geom: self.geom})
+            func_mapping = {}
+            cql_sql, binds = to_sql_where_with_binds(
+                filterq,
+                field_mapping,
+                func_mapping
+            )
+            where_conditions.append(cql_sql)
+            where_dict["properties"].update(binds)
 
         if bbox:
             bbox_dict = {"clause": "", "properties": {}}
@@ -540,6 +555,7 @@ class OracleProvider(BaseProvider):
         q=None,
         language=None,
         filterq=None,
+        cql_text=None,
         **kwargs,
     ):
         """
@@ -589,6 +605,7 @@ class OracleProvider(BaseProvider):
                     bbox_crs=self.storage_crs,
                     sdo_param=self.sdo_param,
                     sdo_operator=self.sdo_operator,
+                    filterq=filterq,
                 )
 
                 # Not dangerous to use self.table as substitution,
@@ -631,6 +648,7 @@ class OracleProvider(BaseProvider):
                 bbox_crs=self.storage_crs,
                 sdo_param=self.sdo_param,
                 sdo_operator=self.sdo_operator,
+                filterq=filterq,
             )
 
             # Get correct SRID
