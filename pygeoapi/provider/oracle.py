@@ -31,7 +31,7 @@ import importlib
 import json
 import logging
 import oracledb
-from pygeofilter.backends.oraclesql import to_sql_where_with_binds
+from pygeofilter.backends.oraclesql import to_sql_where_with_bind_variables
 import pyproj
 from typing import Optional
 
@@ -399,7 +399,7 @@ class OracleProvider(BaseProvider):
         where_conditions = []
 
         if properties:
-            prop_clauses = [f"{key} = :{key}" for key, value in properties]
+            prop_clauses = [f"{key} = :{key}" for key in properties]
             where_conditions += prop_clauses
             where_dict["properties"] = dict(properties)
 
@@ -408,7 +408,7 @@ class OracleProvider(BaseProvider):
             field_mapping = {key: key for key in fields}
             field_mapping.update({self.geom: self.geom})
             func_mapping = {}
-            cql_sql, binds = to_sql_where_with_binds(
+            cql_sql, binds = to_sql_where_with_bind_variables(
                 filterq,
                 field_mapping,
                 func_mapping
@@ -555,7 +555,6 @@ class OracleProvider(BaseProvider):
         q=None,
         language=None,
         filterq=None,
-        cql_text=None,
         **kwargs,
     ):
         """
@@ -575,7 +574,6 @@ class OracleProvider(BaseProvider):
 
         :returns: GeoJSON FeaturesCollection
         """
-
         # Check mandatory filter properties
         property_dict = dict(properties)
         if self.mandatory_properties:
